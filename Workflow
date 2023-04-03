@@ -1,1 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Workflow進度</title>
+<style>	
 
+    .container {
+        background-color: rgb(192, 192, 192);
+        width: 50%;
+        border-radius: 15px;
+    }
+      
+    .progress {
+        background-color: rgb(116, 194, 92);
+        color: white;
+        height: 30px; 
+        text-align: right;
+        font-size: 20px;
+		line-height: 30px;
+        border-radius: 15px;
+		padding-right: 6px;
+    }
+
+</style>
+</head>
+<body>	
+    <h1>Workflow進度<span id="done"></span></h1>
+    <p> <span id="text1"></span> <span id="time1"></span> </p> 
+    <div class="container">
+        <div class="progress bar1"></div>
+    </div>
+  
+    <p> <span id="text2"></span> <span id="time2"></span> </p> 
+    <div class="container">
+        <div class="progress bar2"></div>
+    </div>
+	
+    <p> <span id="text3"></span> <span id="time3"></span> </p> 
+    <div class="container">
+        <div class="progress bar3"></div>
+    </div>
+	
+	<p> <span id="text4"></span> <span id="time4"></span> </p> 
+    <div class="container">
+        <div class="progress bar4"></div>
+    </div>
+	
+	<p> <span id="text5"></span> <span id="time5"></span> </p> 
+    <div class="container">
+        <div class="progress bar5"></div>
+    </div>
+	
+	<p> <span id="text6"></span> <span id="time6"></span> </p> 
+    <div class="container">
+        <div class="progress bar6"></div>
+    </div>
+	
+	<p> <span id="text7"></span> <span id="time7"></span> </p> 
+    <div class="container">
+        <div class="progress bar7"></div>
+    </div>
+	
+	<p> <span id="text8"></span> <span id="time8"></span> </p> 
+    <div class="container">
+        <div class="progress bar8"></div>
+    </div>
+	
+	<p> <span id="text9"></span> <span id="time9"></span> </p> 
+    <div class="container">
+        <div class="progress bar9"></div>
+    </div>
+	
+	<p> <span id="text10"></span> <span id="time10"></span> </p> 
+    <div class="container">
+        <div class="progress bar10"></div>
+    </div>
+	
+	<script>
+	
+	// Set the date we're counting down to(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
+	let countDownDates = [
+		new Date("Mar 31, 2023 23:59:59").getTime(),
+		new Date("Mar 31, 2023 23:59:59").getTime(),
+		new Date("Mar 31, 2023 23:59:59").getTime(),
+		new Date("Apr 6, 2023 23:59:59").getTime(),
+		new Date("Apr 6, 2023 23:59:59").getTime(),
+		new Date("Apr 6, 2023 23:59:59").getTime(),
+		new Date("Apr 13, 2023 23:59:59").getTime(),
+		new Date("Apr 20, 2023 23:59:59").getTime(),
+		new Date("Apr 21, 2023 23:59:59").getTime(),
+		new Date("Apr 28, 2023 23:59:59").getTime(),
+	// Add more dates as needed
+	];
+	let text = [
+		"變數命名規則盡量統一，還有貼合變數意義",
+		"強制換本職或特定職務程式修改",
+		"申請人員關卡的分派跟後置動作程式修改",
+		"郵件標題以正確職位顯示",
+		"在申請主管的關卡，B28005不要跳過世宜主任(任務型分科)",
+		"在申請主管的關卡，主管如果是物理治療師要跳過",
+		"確認組織、傳送流程、組織上層主管是否正確",
+		"人事承辦改使用登記桌分派",
+		"測試環境上版，並確認問題是否都解決",
+		"正式環境上版",
+	];
+	
+	
+	for (let i = 0; i < countDownDates.length; i++) {		
+		// Get today's date and time
+		let now = new Date().getTime();
+		
+		let date = new Date(countDownDates[i]);
+		let Dyear = date.getFullYear();
+		let Dmonth = date.getMonth() + 1; // 月份從 0 開始，所以要加上 1
+		let Dday = date.getDate();
+		
+		//let Dhour = date.getHours();
+		//let Dminute = date.getMinutes();
+		//let Dsecond = date.getSeconds();
+		document.getElementById("text"+ (i+1)).innerHTML = "<span style='color:black;font-size: 18px;' >" + text[i] +"</span>"+
+		" <span style='color:blue;font-size: 15px;' >預計完成日："+ Dyear + "年 " + Dmonth+ "月 " + Dday + "日 </span>";
+	}	 
+	
+	// Update the count down every 1 second
+	let x = setInterval(function() {
+
+		// Get today's date and time
+		let now = new Date().getTime();
+		let distance = [];
+		let days = [];
+		let hours = [];
+		let minutes = [];
+		let seconds = [];
+		let count = 0;
+		
+		let Diffdate = new Date("Apr 1, 2023 00:00:00").getTime();
+		let percent = [];
+		let fixedNum = [];
+		
+		for (let i = 0; i < countDownDates.length; i++) {	
+
+		
+			// Find the distance between now and the count down date
+			distance[i] = countDownDates[i] - now;
+			// Time calculations for days, hours, minutes and seconds
+			days[i] = Math.floor(distance[i] / (1000 * 60 * 60 * 24));
+			hours[i] = Math.floor((distance[i] % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+			minutes[i] = Math.floor((distance[i] % (1000 * 60 * 60)) / (1000 * 60));
+			seconds[i] = Math.floor((distance[i] % (1000 * 60)) / 1000);
+			document.getElementById("time"+ (i+1)).innerHTML ="<span style='color:red;font-size: 15px;' >剩餘時間："+ days[i] + "天 " + hours[i] + "小時 " + minutes[i] + "分鐘 " + seconds[i] + "秒 </span>";
+			if (distance[i] < 0) {
+			document.getElementById("time"+ (i+1)).innerHTML = "<span style='color:green;font-size: 15px;' >已完成</span>";
+			count++;
+			}
+			if (count == countDownDates.length) {
+			clearInterval(x);
+			document.getElementById("done").innerHTML = "<span style='color:green;font-size: 15px;' >所有任務皆已完成</span>";
+			} else {
+			document.getElementById("done").innerHTML = "<span style='color:red;font-size: 15px;' >還剩下" + (countDownDates.length-count) + "個任務待處理</span>";
+			}
+			
+			let timeDiff = countDownDates[i] - Diffdate;
+  
+			if (timeDiff <= 0) {
+				percent[i] = 1;
+			} else {
+				percent[i] = (now - Diffdate) / timeDiff;
+				if (isNaN(percent[i]) || percent[i] < 0|| percent[i] > 1) {
+					percent[i] = 1;
+				}
+			}
+			fixedNum[i] = Math.floor(Math.abs(parseFloat(percent[i]).toFixed(8)) * 100);
+			let progressBar = document.querySelector(".bar" + (i+1));
+			let percentage = fixedNum[i] + "%";
+			progressBar.style.width = percentage;
+			progressBar.innerHTML = percentage;
+			
+		}	 
+		
+	}, 1000);
+	
+
+	</script>
+</body>
+</html>
