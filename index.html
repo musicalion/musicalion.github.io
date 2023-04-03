@@ -88,7 +88,7 @@
 		new Date("Apr 13, 2023 23:59:59").getTime(),
 		new Date("Apr 20, 2023 23:59:59").getTime(),
 		new Date("Apr 21, 2023 23:59:59").getTime(),
-		new Date("Apr 3, 2023 10:58:00").getTime(),
+		new Date("Apr 28, 2023 23:59:59").getTime(),
 	// Add more dates as needed
 	];
 	let text = [
@@ -103,10 +103,7 @@
 		"測試環境上版，並確認問題是否都解決",
 		"正式環境上版",
 	];
-	let Diffdate = new Date("Apr 1, 2023 00:00:00").getTime();
 	
-	let percent = [];
-	let fixedNum = [];
 	
 	for (let i = 0; i < countDownDates.length; i++) {		
 		// Get today's date and time
@@ -116,26 +113,12 @@
 		let Dyear = date.getFullYear();
 		let Dmonth = date.getMonth() + 1; // 月份從 0 開始，所以要加上 1
 		let Dday = date.getDate();
-		let timeDiff = countDownDates[i] - Diffdate;
-  
-		if (timeDiff <= 0) {
-			percent[i] = 1;
-		} else {
-			percent[i] = (now - Diffdate) / timeDiff;
-			if (isNaN(percent[i]) || percent[i] < 0) {
-				percent[i] = 1;
-			}
-		}
-		fixedNum [i] =  Math.abs(parseFloat(percent[i].toFixed(2))*100);
+		
 		//let Dhour = date.getHours();
 		//let Dminute = date.getMinutes();
 		//let Dsecond = date.getSeconds();
 		document.getElementById("text"+ (i+1)).innerHTML = "<span style='color:black;font-size: 18px;' >" + text[i] +"</span>"+
 		" <span style='color:blue;font-size: 15px;' >預計完成日："+ Dyear + "年 " + Dmonth+ "月 " + Dday + "日 </span>";
-		let progressBar = document.querySelector(".bar" + (i+1));
-		let percentage = fixedNum[i] + "%";
-		progressBar.style.width = percentage;
-		progressBar.innerHTML = percentage;
 	}	 
 	
 	// Update the count down every 1 second
@@ -150,7 +133,13 @@
 		let seconds = [];
 		let count = 0;
 		
-		for (let i = 0; i < countDownDates.length; i++) {		
+		let Diffdate = new Date("Apr 1, 2023 00:00:00").getTime();
+		let percent = [];
+		let fixedNum = [];
+		
+		for (let i = 0; i < countDownDates.length; i++) {	
+
+		
 			// Find the distance between now and the count down date
 			distance[i] = countDownDates[i] - now;
 			// Time calculations for days, hours, minutes and seconds
@@ -169,6 +158,23 @@
 			} else {
 			document.getElementById("done").innerHTML = "<span style='color:red;font-size: 15px;' >還剩下" + (countDownDates.length-count) + "個任務待處理</span>";
 			}
+			
+			let timeDiff = countDownDates[i] - Diffdate;
+  
+			if (timeDiff <= 0) {
+				percent[i] = 1;
+			} else {
+				percent[i] = (now - Diffdate) / timeDiff;
+				if (isNaN(percent[i]) || percent[i] < 0|| percent[i] > 1) {
+					percent[i] = 1;
+				}
+			}
+			fixedNum[i] = Math.floor(Math.abs(parseFloat(percent[i]).toFixed(8)) * 100);
+			let progressBar = document.querySelector(".bar" + (i+1));
+			let percentage = fixedNum[i] + "%";
+			progressBar.style.width = percentage;
+			progressBar.innerHTML = percentage;
+			
 		}	 
 		
 	}, 1000);
