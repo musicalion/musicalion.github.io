@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>手機畫面同步</title>
+</head>
+<body>
+  <video id="phoneVideo" autoplay></video>
+
+  <script>
+    // 獲取視訊流
+    async function getMediaStream() {
+      try {
+        const constraints = { video: true };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const videoElement = document.getElementById('phoneVideo');
+        videoElement.srcObject = stream;
+      } catch (error) {
+        console.error('無法獲取視訊流：', error);
+      }
+    }
+
+    // 檢查瀏覽器的相容性
+    function checkCompatibility() {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        // 瀏覽器支援 getUserMedia
+        getMediaStream();
+      } else {
+        console.error('瀏覽器不支援 getUserMedia');
+      }
+    }
+
+    // 在頁面加載完成後執行相容性檢查
+    window.addEventListener('load', checkCompatibility);
+  </script>
+</body>
+</html>
