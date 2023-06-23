@@ -1,36 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>手機畫面同步</title>
+  <title>屏幕共享示例</title>
 </head>
 <body>
-  <video id="phoneVideo" autoplay></video>
+  <h1>屏幕共享示例</h1>
+
+  <button onclick="startScreenSharing()">开始屏幕共享</button>
+  <video id="screenShareVideo" autoplay></video>
 
   <script>
-    // 獲取視訊流
-    async function getMediaStream() {
+    async function startScreenSharing() {
       try {
-        const constraints = { video: true };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        const videoElement = document.getElementById('phoneVideo');
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        const videoElement = document.getElementById('screenShareVideo');
         videoElement.srcObject = stream;
       } catch (error) {
-        console.error('無法獲取視訊流：', error);
+        console.error('屏幕共享失败:', error);
       }
     }
-
-    // 檢查瀏覽器的相容性
-    function checkCompatibility() {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        // 瀏覽器支援 getUserMedia
-        getMediaStream();
-      } else {
-        console.error('瀏覽器不支援 getUserMedia');
-      }
-    }
-
-    // 在頁面加載完成後執行相容性檢查
-    window.addEventListener('load', checkCompatibility);
   </script>
 </body>
 </html>
