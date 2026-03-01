@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animal Lines 🐾</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+
+:root {
+  --bg: #fef9f0;
+  --sky: #e8f4fd;
+  --grass: #7ec850;
+  --dark-grass: #5fa832;
+  --panel: #fff8ee;
+  --border: #f0c060;
+  --shadow: #e8a030;
+  --text: #5a3e2b;
+  --cell: #fdf0d8;
+  --cell-border: #f5d8a0;
+  --cell-hover: #fff3e0;
+  --cell-sel: #ffe0a0;
+  --cell-size: 56px;
+  --grid-gap: 4px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  font-family: 'Nunito', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+/* Sky background */
+.sky-bg {
+  position: fixed; inset: 0; z-index: 0;
+  background: linear-gradient(180deg, #c9e8ff 0%, #e8f4fd 40%, #fef9f0 70%);
+}
+
+/* Clouds */
+.cloud {
+  position: absolute;
+  background: white;
+  border-radius: 50px;
+  opacity: 0.85;
+  animation: drift linear infinite;
+}
+.cloud::before, .cloud::after {
+  content: ''; position: absolute;
+  background: white; border-radius: 50%;
+}
+@keyframes drift { from { transform: translateX(-200px); } to { transform: translateX(110vw); } }
+
+/* Title */
+.title-bar {
+  position: relative; z-index: 2;
+  text-align: center; padding: 14px 0 8px;
+  width: 100%;
+}
+.title-bar h1 {
+  font-size: 2rem; font-weight: 900;
+  color: #ff7043;
+  text-shadow: 3px 3px 0 #ff8a65, 0 4px 12px rgba(255,112,67,0.3);
+  letter-spacing: 2px;
+}
+.title-sub {
+  font-size: 0.85rem; color: #888; font-weight: 700;
+  letter-spacing: 1px; margin-top: 2px;
+}
+
+/* Main layout */
+.main {
+  position: relative; z-index: 2;
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 16px; padding: 8px 8px 0;
+  width: 100%; max-width: 1080px;
+}
+
+/* Side panels */
+.side-panel {
+  display: flex; flex-direction: column; align-items: center;
+  width: 165px; flex-shrink: 0;
+  background: white;
+  border-radius: 20px;
+  border: 3px solid var(--border);
+  box-shadow: 0 4px 0 var(--shadow);
+  padding: 10px 8px;
+  margin-bottom: 16px;
+}
+
+.p-label {
+  font-size: 0.65rem; font-weight: 900;
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 20px;
+  margin-bottom: 6px;
+}
+.challenger .p-label { background: #e3f2fd; color: #1976d2; }
+.champion .p-label   { background: #fff8e1; color: #f57f17; }
+
+.p-score {
+  font-size: 1.5rem; font-weight: 900;
+  margin-bottom: 8px;
+}
+.challenger .p-score { color: #1976d2; }
+.champion .p-score   { color: #f57f17; }
+
+/* Tower scene inside panel */
+.tower-scene {
+  position: relative; width: 140px; height: 270px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #d0f0ff 0%, #e8f8d0 60%, #c8e8a0 100%);
+  border-radius: 12px;
+  border: 2px solid #d0e8b0;
+}
+
+/* Rolling hills ground */
+.scene-ground {
+  position: absolute; bottom: 0; width: 100%; height: 30px;
+  background: var(--grass);
+  border-top: 3px solid var(--dark-grass);
+}
+.scene-ground::before {
+  content: ''; position: absolute; top: -12px; left: -10px;
+  width: 160px; height: 24px;
+  background: var(--grass);
+  border-radius: 50%;
+}
+
+/* Flower decoration */
+.flower {
+  position: absolute; bottom: 26px; font-size: 14px;
+  animation: flowerBob 2s ease-in-out infinite;
+}
+@keyframes flowerBob { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
+
+/* Tower blocks */
+.tower {
+  position: absolute; bottom: 30px;
+  left: 50%; transform: translateX(-50%);
+  width: 52px;
+  display: flex; flex-direction: column-reverse;
+}
+.t-block {
+  width: 52px; height: 14px;
+  border-radius: 3px 3px 0 0;
+  border-top: 3px solid rgba(255,255,255,0.6);
+  border-left: 2px solid rgba(255,255,255,0.3);
+  animation: blockPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes blockPop { from{transform:scaleY(0);opacity:0} to{transform:scaleY(1);opacity:1} }
+
+/* Character emoji sitting on top */
+.character {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  font-size: 28px;
+  line-height: 1;
+  transition: bottom 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  animation: charBob 1.2s ease-in-out infinite;
+}
+@keyframes charBob { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(-5px)} }
+
+/* Speech bubble */
+.speech {
+  position: absolute; top: 6px; left: 50%;
+  transform: translateX(-50%);
+  background: white; border: 2px solid var(--border);
+  border-radius: 12px; padding: 3px 8px;
+  font-size: 0.7rem; font-weight: 800;
+  color: var(--text); white-space: nowrap;
+  opacity: 0; transition: opacity 0.2s;
+  pointer-events: none; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.speech.show { opacity: 1; }
+.speech::after {
+  content: ''; position: absolute;
+  bottom: -7px; left: 50%; transform: translateX(-50%);
+  border-left: 6px solid transparent; border-right: 6px solid transparent;
+  border-top: 6px solid var(--border);
+}
+.speech::before {
+  content: ''; position: absolute;
+  bottom: -5px; left: 50%; transform: translateX(-50%);
+  border-left: 5px solid transparent; border-right: 5px solid transparent;
+  border-top: 5px solid white; z-index: 1;
+}
+
+.p-level {
+  font-size: 0.7rem; font-weight: 800;
+  color: #aaa; margin-top: 6px;
+}
+
+/* ── CENTER ── */
+.center { display:flex; flex-direction:column; align-items:center; gap:8px; }
+
+.hud {
+  display:flex; align-items:center; gap:12px;
+  padding:8px 16px;
+  background:white; border-radius:16px;
+  border:3px solid var(--border);
+  box-shadow:0 3px 0 var(--shadow);
+  width:100%; justify-content:space-between;
+}
+.hud-block { text-align:center; }
+.hud-lbl { font-size:0.6rem; font-weight:800; color:#bbb; letter-spacing:1px; text-transform:uppercase; }
+.hud-val { font-size:1.2rem; font-weight:900; color:var(--text); }
+
+.next-sec { text-align:center; }
+.next-lbl { font-size:0.6rem; font-weight:800; color:#bbb; letter-spacing:1px; text-transform:uppercase; margin-bottom:4px; }
+.next-animals { display:flex; gap:4px; justify-content:center; }
+.next-animal { width:28px; height:28px; font-size:20px; line-height:28px; text-align:center; }
+
+/* Grid */
+.grid-wrap {
+  background: white;
+  border-radius: 20px;
+  border: 3px solid var(--border);
+  box-shadow: 0 4px 0 var(--shadow), 0 8px 24px rgba(0,0,0,0.08);
+  padding: 10px;
+}
+.grid {
+  display:grid;
+  grid-template-columns: repeat(9, var(--cell-size));
+  grid-template-rows: repeat(9, var(--cell-size));
+  gap: var(--grid-gap);
+}
+.cell {
+  width:var(--cell-size); height:var(--cell-size);
+  background:var(--cell); border:2px solid var(--cell-border);
+  border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; position:relative;
+  transition:background 0.12s, transform 0.1s, border-color 0.12s;
+  font-size:30px; line-height:1;
+}
+.cell:hover { background:var(--cell-hover); border-color:#f0c090; transform:scale(1.04); }
+.cell.selected {
+  background:#fff0c0; border-color:#ffb830;
+  box-shadow:0 0 0 3px #ffe06080, inset 0 0 10px rgba(255,200,0,0.15);
+  transform:scale(1.06);
+}
+
+/* Animal emoji on cell */
+.animal {
+  display:inline-block;
+  transition:transform 0.15s;
+  cursor:pointer;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,0.15));
+}
+.animal.bouncing { animation:aBounce 0.5s ease-in-out infinite; }
+@keyframes aBounce { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-8px) scale(0.95)} }
+.animal.appearing { animation:aAppear 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes aAppear { from{transform:scale(0) rotate(-20deg);opacity:0} to{transform:scale(1) rotate(0);opacity:1} }
+.animal.exploding { animation:aExplode 0.4s ease-out forwards; }
+@keyframes aExplode {
+  0%{transform:scale(1);opacity:1}
+  40%{transform:scale(1.6) rotate(15deg);opacity:0.9}
+  100%{transform:scale(0) rotate(30deg);opacity:0}
+}
+
+/* Score flash */
+.score-flash {
+  position:fixed; font-size:1.1rem; font-weight:900;
+  color:#ff7043; text-shadow:1px 1px 0 #fff, 2px 2px 0 rgba(0,0,0,0.1);
+  pointer-events:none; z-index:500;
+  animation:flashUp 0.8s ease-out forwards;
+}
+@keyframes flashUp { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-60px) scale(1.3)} }
+
+/* Bottom */
+.bottom-bar { display:flex; gap:10px; justify-content:center; padding:8px 0 12px; }
+.btn {
+  font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:900;
+  padding:10px 22px;
+  background:#ff7043; color:white;
+  border:none; border-radius:30px;
+  box-shadow:0 4px 0 #e64a19;
+  cursor:pointer; transition:all 0.1s;
+  letter-spacing:1px;
+}
+.btn:hover { background:#ff8a65; transform:translateY(-1px); box-shadow:0 5px 0 #e64a19; }
+.btn:active { transform:translateY(3px); box-shadow:0 1px 0 #e64a19; }
+
+/* Overlay */
+.overlay {
+  position:fixed; inset:0;
+  background:rgba(254,249,240,0.95);
+  backdrop-filter:blur(6px);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:16px; z-index:400;
+  opacity:0; pointer-events:none; transition:opacity 0.3s;
+}
+.overlay.visible { opacity:1; pointer-events:all; }
+.overlay-emoji { font-size:4rem; animation:ovBounce 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes ovBounce { from{transform:scale(0) rotate(-30deg)} to{transform:scale(1) rotate(0)} }
+.overlay h2 { font-size:2rem; font-weight:900; color:#ff7043; }
+.overlay-sub { font-size:0.9rem; font-weight:700; color:#aaa; letter-spacing:2px; text-transform:uppercase; }
+.overlay-score { font-size:3rem; font-weight:900; color:var(--text); }
+.overlay-rec { font-size:0.85rem; font-weight:800; color:#f57f17; }
+.overlay-rec.new { animation:recFlash 0.5s ease-in-out infinite alternate; }
+@keyframes recFlash { from{color:#ff7043} to{color:#f57f17} }
+
+/* Responsive */
+@media(max-width:900px){ :root{--cell-size:42px;} .side-panel{width:130px;} .tower-scene{width:116px;height:220px;} }
+@media(max-width:720px){ :root{--cell-size:34px;} .side-panel{width:100px;} .tower-scene{width:90px;height:180px;} .character{font-size:22px} }
+@media(max-width:580px){ :root{--cell-size:28px;} .side-panel{display:none} }
+</style>
+</head>
+<body>
+
+<div class="sky-bg"></div>
+
+<!-- Clouds -->
+<div class="cloud" style="width:80px;height:28px;top:8%;left:-100px;animation-duration:22s;animation-delay:0s">
+  <div style="position:absolute;width:44px;height:40px;border-radius:50%;top:-18px;left:10px;background:white"></div>
+  <div style="position:absolute;width:30px;height:30px;border-radius:50%;top:-12px;left:36px;background:white"></div>
+</div>
+<div class="cloud" style="width:60px;height:22px;top:18%;left:-100px;animation-duration:30s;animation-delay:-12s">
+  <div style="position:absolute;width:34px;height:32px;border-radius:50%;top:-14px;left:8px;background:white"></div>
+</div>
+<div class="cloud" style="width:100px;height:30px;top:5%;left:-100px;animation-duration:38s;animation-delay:-6s;opacity:0.6">
+  <div style="position:absolute;width:50px;height:46px;border-radius:50%;top:-22px;left:16px;background:white"></div>
+  <div style="position:absolute;width:36px;height:34px;border-radius:50%;top:-14px;left:52px;background:white"></div>
+</div>
+
+<div class="title-bar">
+  <h1>🐾 Animal Lines 🐾</h1>
+  <div class="title-sub">Connect 5 same animals to clear!</div>
+</div>
+
+<div class="main">
+
+  <!-- LEFT: Challenger -->
+  <div class="side-panel challenger">
+    <div class="p-label">CHALLENGER</div>
+    <div class="p-score" id="cur-score">0</div>
+    <div class="tower-scene" id="scene-left">
+      <div class="speech" id="speech-left">Let's go! 🎉</div>
+      <div class="flower" style="left:8px;animation-delay:0s">🌸</div>
+      <div class="flower" style="right:10px;animation-delay:0.7s">🌼</div>
+      <div class="tower" id="tower-left"></div>
+      <div class="character" id="char-left" style="bottom:30px">🐱</div>
+      <div class="scene-ground"></div>
+    </div>
+    <div class="p-level" id="left-level">Tower Lv.0</div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="center">
+    <div class="hud">
+      <div class="hud-block">
+        <div class="hud-lbl">Score</div>
+        <div class="hud-val" id="score">0</div>
+      </div>
+      <div class="next-sec">
+        <div class="next-lbl">Next</div>
+        <div class="next-animals" id="next-animals"></div>
+      </div>
+      <div class="hud-block">
+        <div class="hud-lbl">Best</div>
+        <div class="hud-val" id="best">0</div>
+      </div>
+    </div>
+
+    <div class="grid-wrap">
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="bottom-bar">
+      <button class="btn" onclick="newGame()">🔄 New Game</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: Champion -->
+  <div class="side-panel champion">
+    <div class="p-label">CHAMPION</div>
+    <div class="p-score" id="best-score">0</div>
+    <div class="tower-scene" id="scene-right">
+      <div class="speech" id="speech-right">Defend! 👑</div>
+      <div class="flower" style="left:8px;animation-delay:0.3s">🌷</div>
+      <div class="flower" style="right:10px;animation-delay:1s">🌻</div>
+      <div class="tower" id="tower-right"></div>
+      <div class="character" id="char-right" style="bottom:30px">🐶</div>
+      <div class="scene-ground"></div>
+    </div>
+    <div class="p-level" id="right-level">Tower Lv.0</div>
+  </div>
+</div>
+
+<!-- Game Over -->
+<div class="overlay" id="overlay">
+  <div class="overlay-emoji" id="ov-emoji">😿</div>
+  <h2>Game Over!</h2>
+  <div class="overlay-sub">Your Score</div>
+  <div class="overlay-score" id="final-score">0</div>
+  <div id="record-msg" class="overlay-rec"></div>
+  <button class="btn" onclick="newGame()">🎮 Play Again</button>
+</div>
+
+<script>
+// ─── Constants ───────────────────────────────────────────────
+const ANIMALS = ['🐱','🐶','🐻','🐸','🐼','🐹','🦊'];
+const ANIMAL_COLORS = {
+  '🐱': ['#ffeecc','#ffcc66'],
+  '🐶': ['#ffe0cc','#ffaa88'],
+  '🐻': ['#ffe8e0','#ffb8a0'],
+  '🐸': ['#e0ffe0','#88cc88'],
+  '🐼': ['#e8e8f0','#aaaacc'],
+  '🐹': ['#ffe8f0','#ffaabb'],
+  '🦊': ['#fff0e0','#ffcc88'],
+};
+// Tower block colors per animal
+const BLOCK_COLORS = {
+  '🐱': ['#ffcc66','#cc9933','#ffe8aa'],
+  '🐶': ['#ffaa88','#cc6644','#ffd0b0'],
+  '🐻': ['#ff9999','#cc5555','#ffbbbb'],
+  '🐸': ['#66bb66','#338833','#99dd99'],
+  '🐼': ['#9999cc','#666699','#bbbbdd'],
+  '🐹': ['#ff99bb','#cc5577','#ffbbcc'],
+  '🦊': ['#ffaa44','#cc7700','#ffcc88'],
+};
+
+const GOOD_MSGS = ['Nice! 🎉','Combo! ✨','Wow! 🌟','Fire! 🔥','Sweet! 🍬','Yeah! 🎊','Go go! 💪'];
+const BAD_MSGS  = ['Oh no! 😢','Oops! 😅','Nooo! 😱','Help! 🆘'];
+
+const SIZE = 9;
+const MATCH = 5;
+const BLOCK_H = 14; // px per tower block
+const GROUND_H = 30;
+const MAX_BLOCKS = 16;
+const PTS_PER_BLOCK = 12;
+
+// ─── State ───────────────────────────────────────────────────
+let grid = [];       // null or animal emoji
+let selected = null; // index or null
+let score = 0;
+let best = parseInt(localStorage.getItem('al-best') || '0');
+let nextAnimals = [];
+let busy = false;    // prevents all clicks during animation/removal
+
+// ─── Tower state ─────────────────────────────────────────────
+let leftBlocks = 0, rightBlocks = 0;
+// Track which animal type each block is (for coloring)
+let leftTowerType = '🐱', rightTowerType = '🐶';
+// Last cleared animal (for tower block color)
+let lastClearedAnimal = '🐱';
+
+function scoreToBlocks(s) { return Math.min(Math.floor(s / PTS_PER_BLOCK), MAX_BLOCKS); }
+
+function updateTower(side, count, animalType) {
+  const tEl = document.getElementById('tower-' + side);
+  const cEl = document.getElementById('char-' + side);
+  const lEl = document.getElementById((side==='left'?'left':'right') + '-level');
+  const cur = tEl.children.length;
+
+  if (count > cur) {
+    const col = BLOCK_COLORS[animalType] || ['#aaa','#888','#ccc'];
+    for (let i = cur; i < count; i++) {
+      const b = document.createElement('div');
+      b.className = 't-block';
+      b.style.background = col[0];
+      b.style.borderTopColor = col[2];
+      b.style.borderLeftColor = col[2];
+      tEl.appendChild(b);
+    }
+  } else {
+    while (tEl.children.length > count) tEl.removeChild(tEl.lastChild);
+  }
+  cEl.style.bottom = (GROUND_H + count * BLOCK_H) + 'px';
+  lEl.textContent = 'Tower Lv.' + count;
+}
+
+function updateTowers() {
+  const newLeft = scoreToBlocks(score);
+  if (newLeft > leftBlocks) {
+    showSpeech('left', GOOD_MSGS[Math.floor(Math.random()*GOOD_MSGS.length)]);
+    leftBlocks = newLeft;
+    updateTower('left', leftBlocks, lastClearedAnimal);
+  }
+  const newRight = scoreToBlocks(best);
+  if (newRight !== rightBlocks) {
+    rightBlocks = newRight;
+    updateTower('right', rightBlocks, rightTowerType);
+  }
+}
+
+function showSpeech(side, text) {
+  const el = document.getElementById('speech-' + side);
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ─── Init ────────────────────────────────────────────────────
+function init() {
+  grid = Array(SIZE*SIZE).fill(null);
+  score = 0; selected = null; busy = false;
+  leftBlocks = 0;
+
+  document.getElementById('score').textContent = '0';
+  document.getElementById('best').textContent = best;
+  document.getElementById('cur-score').textContent = '0';
+  document.getElementById('best-score').textContent = best;
+  document.getElementById('overlay').classList.remove('visible');
+
+  // Reset left tower
+  document.getElementById('tower-left').innerHTML = '';
+  document.getElementById('char-left').style.bottom = GROUND_H + 'px';
+  document.getElementById('left-level').textContent = 'Tower Lv.0';
+
+  // Champion tower = best
+  rightBlocks = scoreToBlocks(best);
+  document.getElementById('tower-right').innerHTML = '';
+  document.getElementById('char-right').style.bottom = GROUND_H + 'px';
+  document.getElementById('right-level').textContent = 'Tower Lv.0';
+  updateTower('right', rightBlocks, rightTowerType);
+
+  buildDOM();
+  nextAnimals = randomAnimals();
+  renderNext();
+  placeNew();
+}
+
+function buildDOM() {
+  const g = document.getElementById('grid');
+  g.innerHTML = '';
+  for (let i = 0; i < SIZE*SIZE; i++) {
+    const c = document.createElement('div');
+    c.className = 'cell';
+    c.addEventListener('click', () => onCellClick(i));
+    g.appendChild(c);
+  }
+}
+
+function rnd(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function randomAnimal() { return rnd(ANIMALS); }
+function randomAnimals() { return [randomAnimal(), randomAnimal(), randomAnimal()]; }
+
+// ─── Render ──────────────────────────────────────────────────
+function renderGrid(exploding = new Set()) {
+  const g = document.getElementById('grid');
+  for (let i = 0; i < SIZE*SIZE; i++) {
+    const cell = g.children[i];
+    const isSel = selected === i;
+    cell.className = 'cell' + (isSel ? ' selected' : '');
+
+    // Background tint for animal type
+    if (grid[i]) {
+      const col = ANIMAL_COLORS[grid[i]];
+      cell.style.background = isSel ? '#fff0c0' : col ? col[0] : 'var(--cell)';
+      cell.style.borderColor = isSel ? '#ffb830' : col ? col[1] : 'var(--cell-border)';
+    } else {
+      cell.style.background = '';
+      cell.style.borderColor = '';
+    }
+
+    if (grid[i]) {
+      let el = cell.querySelector('.animal');
+      if (!el) {
+        el = document.createElement('span');
+        el.className = 'animal';
+        cell.appendChild(el);
+      }
+      el.textContent = grid[i];
+      el.className = 'animal';
+      if (exploding.has(i)) el.classList.add('exploding');
+      else if (isSel) el.classList.add('bouncing');
+    } else {
+      const old = cell.querySelector('.animal');
+      if (old) old.remove();
+    }
+  }
+}
+
+function renderNext() {
+  const nb = document.getElementById('next-animals');
+  nb.innerHTML = '';
+  nextAnimals.forEach(a => {
+    const d = document.createElement('div');
+    d.className = 'next-animal';
+    d.textContent = a;
+    nb.appendChild(d);
+  });
+}
+
+// ─── Place new animals ───────────────────────────────────────
+function placeNew() {
+  const empties = [];
+  for (let i = 0; i < SIZE*SIZE; i++) if (!grid[i]) empties.push(i);
+  if (!empties.length) { gameOver(); return; }
+
+  const toPlace = nextAnimals.slice(); // copy
+  nextAnimals = randomAnimals();
+
+  // Shuffle empties and place
+  empties.sort(() => Math.random()-0.5);
+  const placed = [];
+  for (let k = 0; k < Math.min(3, empties.length); k++) {
+    grid[empties[k]] = toPlace[k];
+    placed.push(empties[k]);
+  }
+
+  renderGrid();
+  placed.forEach(idx => {
+    const el = document.getElementById('grid').children[idx].querySelector('.animal');
+    if (el) el.classList.add('appearing');
+  });
+  renderNext();
+
+  // Check if any placed animal causes a clear
+  // Important: collect all clearing results BEFORE calling placeNew again
+  let cleared = false;
+  const clearPromises = [];
+  for (const idx of placed) {
+    const result = checkLines(idx);
+    if (result) cleared = true;
+  }
+
+  // If board full and nothing cleared, game over
+  if (!cleared) {
+    const emp2 = grid.filter(x => !x).length;
+    if (emp2 === 0) gameOver();
+  }
+}
+
+// ─── Click handler ───────────────────────────────────────────
+function onCellClick(idx) {
+  if (busy) return;
+
+  // Nothing selected → select this cell (if has animal)
+  if (selected === null) {
+    if (grid[idx]) {
+      selected = idx;
+      renderGrid();
+    }
+    return;
+  }
+
+  // Clicked same cell → deselect
+  if (selected === idx) {
+    selected = null;
+    renderGrid();
+    return;
+  }
+
+  // Clicked another animal → switch selection
+  if (grid[idx]) {
+    selected = idx;
+    renderGrid();
+    return;
+  }
+
+  // Clicked empty cell → try to move
+  const from = selected;
+  const path = bfs(from, idx);
+  if (!path) {
+    // Can't reach — just deselect
+    selected = null;
+    renderGrid();
+    return;
+  }
+
+  // Do the move
+  selected = null;
+  doMove(path, idx, from);
+}
+
+function doMove(path, to, from) {
+  busy = true;
+  const animal = grid[from];
+  let step = 0;
+
+  function tick() {
+    // Clear previous position (except the very first step where from is the origin)
+    if (step > 0) grid[path[step-1]] = null;
+    grid[path[step]] = animal;
+    renderGrid();
+    step++;
+    if (step < path.length) {
+      setTimeout(tick, 40);
+    } else {
+      // Animation done. Now check lines at destination.
+      // 'to' == path[path.length-1]
+      busy = false;
+      const didClear = checkLines(to);
+      if (!didClear) {
+        // No clear → place 3 new animals
+        placeNew();
+      }
+      // If didClear → checkLines handles async and does NOT call placeNew
+      // because clearing means player doesn't get penalty
+    }
+  }
+  tick();
+}
+
+// ─── BFS ─────────────────────────────────────────────────────
+function bfs(from, to) {
+  if (grid[to]) return null; // target occupied
+  const q = [[from]], visited = new Set([from]);
+  while (q.length) {
+    const path = q.shift();
+    const cur = path[path.length-1];
+    if (cur === to) return path;
+    const r = Math.floor(cur/SIZE), c = cur%SIZE;
+    const neighbors = [];
+    if (r > 0)      neighbors.push(cur - SIZE);
+    if (r < SIZE-1) neighbors.push(cur + SIZE);
+    if (c > 0)      neighbors.push(cur - 1);
+    if (c < SIZE-1) neighbors.push(cur + 1);
+    for (const n of neighbors) {
+      if (!visited.has(n) && !grid[n]) {
+        visited.add(n);
+        q.push([...path, n]);
+      }
+    }
+  }
+  return null;
+}
+
+// ─── Check & remove lines ────────────────────────────────────
+// Returns true if any line was found (async clear will happen)
+function checkLines(idx) {
+  const animal = grid[idx];
+  if (!animal) return false;
+
+  const r = Math.floor(idx/SIZE), c = idx%SIZE;
+  const toRemove = new Set();
+
+  for (const [dr, dc] of [[0,1],[1,0],[1,1],[1,-1]]) {
+    const line = [idx];
+    let nr = r+dr, nc = c+dc;
+    while (nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && grid[nr*SIZE+nc]===animal) {
+      line.push(nr*SIZE+nc); nr+=dr; nc+=dc;
+    }
+    nr = r-dr; nc = c-dc;
+    while (nr>=0 && nr<SIZE && nc>=0 && nc<SIZE && grid[nr*SIZE+nc]===animal) {
+      line.push(nr*SIZE+nc); nr-=dr; nc-=dc;
+    }
+    if (line.length >= MATCH) line.forEach(i => toRemove.add(i));
+  }
+
+  if (!toRemove.size) return false;
+
+  // Lock during explosion
+  busy = true;
+  lastClearedAnimal = animal;
+
+  renderGrid(toRemove); // show exploding animation
+
+  setTimeout(() => {
+    // Remove from grid
+    toRemove.forEach(i => grid[i] = null);
+
+    // Score
+    const pts = toRemove.size * 2;
+    score += pts;
+    const isNew = score > best;
+    if (isNew) {
+      best = score;
+      rightTowerType = lastClearedAnimal; // Champion tower matches winning animal
+      localStorage.setItem('al-best', best);
+      document.getElementById('best').textContent = best;
+      document.getElementById('best-score').textContent = best;
+    }
+    document.getElementById('score').textContent = score;
+    document.getElementById('cur-score').textContent = score;
+
+    updateTowers();
+    showScoreFlash(idx, '+' + pts + ' 🎉');
+    renderGrid();
+
+    busy = false;
+
+    // Check if the board is now full (edge case)
+    if (!grid.some(x => !x)) gameOver();
+  }, 420);
+
+  return true;
+}
+
+// ─── Score flash ─────────────────────────────────────────────
+function showScoreFlash(idx, text) {
+  const cell = document.getElementById('grid').children[idx];
+  const rect = cell.getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'score-flash';
+  el.textContent = text;
+  el.style.left = (rect.left + rect.width/2 - 30) + 'px';
+  el.style.top  = (rect.top - 10) + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 800);
+}
+
+// ─── Game Over ───────────────────────────────────────────────
+function gameOver() {
+  busy = true;
+  showSpeech('left', rnd(BAD_MSGS));
+  document.getElementById('final-score').textContent = score;
+  const isNew = score > 0 && score >= best;
+  document.getElementById('record-msg').textContent = isNew ? '🏆 NEW RECORD!' : 'Best: ' + best;
+  document.getElementById('record-msg').className = 'overlay-rec' + (isNew ? ' new' : '');
+  document.getElementById('ov-emoji').textContent = isNew ? '🎊' : '😿';
+  document.getElementById('overlay').classList.add('visible');
+}
+
+function newGame() { init(); }
+
+// ─── Start ───────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
